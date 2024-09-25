@@ -1,9 +1,4 @@
-/* 
-MAKE - PROVERB LIST OF APROXIMATELY 60 PROVERBS OR MORE - SAY 4-8 characters long
-GO PROVERAS OR
-*/
-
-10 cls : gotoxy 25,4 : print "JACK TROT(c)..words ex proverbs" : gotoxy 27,5 : print"please wait"
+10 cls : gotoxy 25,4 : print "JACK TROT(c)..words ex proverbs" : gotoxy 27,5 : print "please wait"
 20 dim pr(150), pr$(150,15), t$(600), ti$(200,3), td$ (3), gu$ (15),r$ (600),sw$(600)
 30 dim K(2), c(2), cp$(2,15), ppb$(2,15),score(2), q(2),bag%(2), count(2), cpos(2), pot(2), grab%(2),blob(2), p$(20)
 40 t% = 0 : p% = 0 : a% = 0 : cor% = 100 : gut% = 1 : ke% = 200 : rug% = 1
