@@ -102,7 +102,7 @@
 1000 if q(p) = 1 then pot(p) = (timer-po) *ke%
 1010 return
 1020 rem****showinf tile placement
-1030 grab%(p) = grab%(p)+vol%: count(p) = count(p)+1 : ppb$(p, cpos(p)) = "fi
+1030 grab%(p) = grab%(p)+vol%: count(p) = count(p)+1 : ppb$(p, cpos(p)) = "fi"
 1040 for a = 1 to 3
 1050 moveto 7+480*(cpos(p)-1)/k(p), 155*(p-1) +15*a
 1060 graphics drawtext td$(a)
@@ -249,7 +249,7 @@
 2380 if calk = k(1)-2 then print "close guess,but 2 are wrong" : p = 1 : gosub 1660 : p = 2 : return
 2390 if calk < k(1)-2 then print "not a good guess dick head" : p = 1 : gosub 1660 : p = 2 : return
 2400 if calk = k(1)-1 then print "close enough buddy"
-2410 if calk = k(1) then print "EXCELLENT GUESS
+2410 if calk = k(1) then print "EXCELLENT GUESS"
 2420 score(2) = score(2)+ grab%(1)+(k(1)-count(1))*2
 2430 gotoxy 50,4 : print "score for player "ip;" is ";score(2)
 2440 if score(2) > 100 then gotoxy 25,4 : print "YOU WIN: congratulations" : end
@@ -295,7 +295,7 @@
 3010 gr$ = cp$(2,box)
 3015 if gr$ = "" then d = 0 : return
 3020 for d = 1 to len(td$(a))
-3030 if gr$ = " then d = 20: goto 3060
+3030 if gr$ = "" then d = 20: goto 3060
 3049 tap = instr(gr$,mid$(td$(a),d, 1)) : if tap = 0 then d = 20 : goto 3060
 3050 gr$ = right$(gr$,len (gr$)-tap)
 3060 next d
@@ -309,7 +309,7 @@
 3610 gosub 640: gosub 770 : count(2) = 0 : grab%(2) = 0
 3630 return
 4000 rem***** new proverb insertion?****
-4002 gotoxy 0,0 : print "do you want a new proverb, (y/n)
+4002 gotoxy 0,0 : print "do you want a new proverb, (y/n)"
 4010 c$= "" : w$=""
 4020 for a = 1 to 150
 4030 c$ = inkey$
