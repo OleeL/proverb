@@ -61,7 +61,7 @@ local function selectProverbForPlayer(p)
 
     for b = 1, playerProverbWordCounts[p] do
         playerProverbs[p][b] = proverbs[selectedIndex][b]
-        playerProverbBoxes[p][b] = ''  -- Initialize box as empty
+        playerProverbBoxes[p][b] = ''
     end
 
     grabs[p] = 0
@@ -72,7 +72,6 @@ local function selectProverbForPlayer(p)
     guessHelpers[p] = 1
 end
 
--- Initialize player proverb boxes (visual representation)
 local function initializePlayerProverbBoxes(p)
     local boxes = {}
     for a = 0, playerProverbWordCounts[p]-1 do
@@ -126,36 +125,29 @@ local function readProverbs()
     end
 end
 
--- Initialize Love2D window
 function love.load()
     love.window.setMode(windowWidth, windowHeight)
     love.window.setTitle("Jack Trot - Words from Proverbs")
 
-    -- Read proverbs and words
     readProverbs()
     duplicateWordList()
     wordListDividedBy5 = math.floor(totalWords / 5)
     wordListDividedBy15 = math.floor(totalWords / 15)
 
-    -- Initialize game for each player
     for p = 1, 2 do
         selectProverbForPlayer(p)
         initializePlayerProverbBoxes(p)
     end
 
-    -- Initialize other variables
     tileNumber = 1
     tileIndex = 1
     gameRound = 1
     tileRound = 1
     pauseCounter = 100
     maxWaitTime = 200
-
-    -- Start the game
     gameState = "playing"
 end
 
--- Randomize words and assign to tiles
 local function randomizeWords()
     local remainingWords = {}
     for i, word in ipairs(duplicateWords) do
@@ -176,9 +168,7 @@ local function randomizeWords()
     end
 end
 
--- Show current tile
 local function showTile()
-    -- Display current tile words
     if tileWords[tileIndex] then
         currentTileWords = tileWords[tileIndex]
         tileIndex = tileIndex + 1
@@ -211,14 +201,12 @@ local function checkTileMatch(p)
     end
 end
 
--- Update player's score
 local function updatePlayerScore(p)
-    local points = grabs[p] + 10  -- Points can be adjusted
+    local points = grabs[p] + 10 
     scores[p] = scores[p] + points
     grabs[p] = grabs[p] + 1
 end
 
--- Update player's proverb with the matched tile
 local function updatePlayerProverb(p)
     local position = currentProverbPositions[p]
     if position and position > 0 then
@@ -227,7 +215,6 @@ local function updatePlayerProverb(p)
     end
 end
 
--- Handle player's tile choice
 local function handlePlayerTileChoice(p)
     -- Simulate timing (choiceTimings)
     local startTime = love.timer.getTime()
@@ -240,21 +227,15 @@ local function handlePlayerTileChoice(p)
     end
 end
 
--- Main game loop
 function love.update(dt)
     if gameState == "playing" then
-        -- Game rounds
         if gameRound <= 5 then
-            -- Randomize words for this round
             randomizeWords()
             -- Tile rounds within the game round
             if tileRound <= wordListDividedBy15 then
                 showTile()
-                -- Player 1's turn
                 handlePlayerTileChoice(1)
-                -- Player 2's turn
                 handlePlayerTileChoice(2)
-                -- Update counters
                 pauseCounter = pauseCounter - 1
                 maxWaitTime = maxWaitTime - 1
                 tileNumber = tileNumber + 1
@@ -265,7 +246,6 @@ function love.update(dt)
                 gameRound = gameRound + 1
             end
         else
-            -- Game over after 5 rounds
             gameState = "gameover"
         end
     end
