@@ -1,5 +1,5 @@
 10 cls : gotoxy 25,4 : print "JACK TROT(c)..words ex proverbs" : gotoxy 27,5 : print "please wait"
-20 dim pr(150), pr$(150,15), t$(600), ti$(200,3), td$ (3), gu$ (15),r$ (600),sw$(600)
+20 dim pr(150),pr$(150,15),t$(600),ti$(200,3),td$(3),gu$(15),r$(600),sw$(600)
 30 dim K(2), c(2), cp$(2,15), ppb$(2,15),score(2), q(2),bag%(2), count(2), cpos(2), pot(2), grab%(2),blob(2), p$(20)
 40 t% = 0 : p% = 0 : a% = 0 : cor% = 100 : gut% = 1 : ke% = 200 : rug% = 1
 50 gosub 260 : gosub 2710 : ht% = t%/5 : hgt% = t%/15
@@ -77,8 +77,8 @@
 760 return
 770 rem*** show player 2 proverb
 780 for a = 1 to k(2)
-790 moveto 45+(a-1)*480/k(2),156 : graphics drawtext str$ (a)
-800 moveto 5+(a-1)*480/k(2),142 : graphics drawtext cp$ (2,a)
+790 moveto 45+(a-1)*480/k(2),156 : graphics drawtext str$(a)
+800 moveto 5+(a-1)*480/k(2),142 : graphics drawtext cp$(2,a)
 810 next a
 820 return
 830 rem** tile match
@@ -88,7 +88,6 @@
 870 for n = 1 to k(p)
 880 if ppb$(p,n) = "f" then goto 940
 890 if len(td$(m)) = 1 then 920
-
 900 if instr(cp$(p,n), ta$(m)) > O then goto 930
 910 gosub 2740: if d = 21 then goto 940: else goto 930
 920 if left$(cp$(p,n), 1) <> td$(m) then 940
@@ -136,7 +135,6 @@
 1330 for b = 1 to 3
 1335 if td$(b) = "" then goto 1380
 1340 if len(td$(b)) = 1 then goto 1360
-
 1350 if instr(pr$(a,c), td$(b)) = 0 then goto 1380 : else goto 1370
 1360 if left$(pr$(a,c), 1) <> td$(b) then goto 1380
 1370 b = 3: blob(guess) = a : c = pr (a) : a = p%+2
@@ -182,7 +180,6 @@
 1750 if a$ = "c" then wait = 100
 1760 if a$ = "e" then gosub 6000 : print "you asked me to finish, so I did" : end
 1770 next wait
-
 1780 return
 1790 rem****cls***
 1800 for a = 0 to 6 step 3
@@ -229,12 +226,11 @@
 2190 if count(2) < nous/2 then goto 2200: else goto 2210
 2200 b$ = "" : gotoxy 0,0 : print "Sorry you have not tried yet": gosub 1710: return
 2210 gotoxy 0,0 : print "type guess(abort by space bar/return)"
-
 2220 gotoxy 0,6 : input "guess ";pg$
 2230 if pg$ = " " then return
 2240 iris = 1 : 1% = 1 : 95 = " "
 2250 while iris
-2260 gu = instrpg$, q$)
+2260 gu = instr(pg$, q$)
 2270 if gu = 0 then gu$(n%) = pg$ : iris = 0 : goto 2310
 2280 gu$(n%) = left$(pg$,gu)
 2290 pg$ = right$(pg$,len(pg$)-gu)
@@ -268,14 +264,13 @@
 2570 9% = rnd(h%)+1
 2580 tis(a,b) = r$(g%)
 2590 for d = g% to h%-1
-2600 r$ (d) = r$(d+1)
+2600 r$(d) = r$(d+1)
 2610 next d
 2620 h% = h%-1
 2630 next a
 2640 next b
 2650 return
 2660 rem****randomise words 2*
-
 2670 for a = 0 to ht%-1
 2680 r$(a+1) = sw$(5*a+nous)
 2690 next a
@@ -323,3 +318,24 @@
 5030 m = instr(m$, q$)
 5040 if m = 0 then p$(n) = m$: flag = 0 : goto 5070
 5050 p$(n) = left$(m$,m)
+5060 m$ = right$(m$,len(m$)-m)
+5065 n = n+1
+5070 wend
+5075 print "no of words in proverb is";n
+5080 open "proverblist" for append as #1
+5090 print #1,n
+5095 for b = 1 to n
+5097 print #1, p$(b)
+5098 next b
+5099 close #1
+5100 pr(p%) = n: k(2) = n
+5110 return
+6000 rem***** show proverbs
+6005 cls
+6010 gotoxy 0,0
+6020 for a = 1 to p%
+6030 for b = 1 to pr(p%)
+6040 print pr$(a,b);
+6050 next b
+6060 next a
+6070 return

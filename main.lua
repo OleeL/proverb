@@ -1,42 +1,39 @@
-
 -- Variables
-local proverbWordCounts = {}      -- Number of words in each proverb
-local proverbs = {}               -- Words in each proverb
-local wordList = {}               -- List of all words from proverbs and additional words
-local tileWords = {}              -- Tile words (ti)
-local currentTileWords = {}       -- Current tile words (td)
-local guessWords = {}             -- Guess words (gu)
-local randomizedWords = {}        -- Randomized words (r_arr)
-local duplicateWords = {}         -- Duplicate words (sw)
+local proverbWordCounts = {}       -- Number of words in each proverb
+local proverbs = {}                -- Words in each proverb
+local wordList = {}                -- List of all words from proverbs and additional words
+local tileWords = {}               -- Tile words (ti)
+local currentTileWords = {}        -- Current tile words (td)
+local duplicateWords = {}          -- Duplicate words (sw)
 
 local playerProverbWordCounts = {} -- Number of words in the proverb for each player (K)
 local selectedProverbIndices = {}  -- Selected proverb index for each player (c)
 local playerProverbs = {}          -- Player's proverb words (cp)
 local playerProverbBoxes = {}      -- Player's proverb box statuses (ppb)
-local scores = {0, 0}              -- Scores for each player
+local scores = { 0, 0 }            -- Scores for each player
 local tileMatchFlags = {}          -- Tile match flag for each player (q)
-local tileCounts = {0, 0}          -- Count of tiles placed by each player (count)
+local tileCounts = { 0, 0 }        -- Count of tiles placed by each player (count)
 local currentProverbPositions = {} -- Current position in the proverb (cpos)
-local choiceTimings = {}           -- Timing variables for choices (pot)
-local grabs = {0, 0}               -- Grabs for each player (grab)
-local guessHelpers = {}            -- Guess helper variables (blob)
-local inputProverbWords = {}       -- Proverb words input by user (p_arr)
+local grabs = { 0, 0 }             -- Grabs for each player (grab)
 
 local totalWords = 0               -- Total words count (t)
 local totalProverbs = 0            -- Total proverbs count (p_global)
-local pauseCounter = 100           -- Timing variable (cor)
 local tileIndex = 1                -- Tile index (gut)
-local maxWaitTime = 200            -- Maximum wait time for input (ke)
 local tileNumber = 1               -- Tile number (rug)
-local wordListDividedBy5 = 0       -- totalWords / 5 (ht)
 local wordListDividedBy15 = 0      -- totalWords / 15 (hgt)
 local gameRound = 1                -- Game round counter (nous)
 local tileRound = 1                -- Tile round counter (we)
 
 local windowWidth, windowHeight = 500, 220
-local gameState = "start"          -- Game state (e.g., "start", "playing", "gameover")
+local gameState = "start" -- Game state (e.g., "start", "playing", "gameover")
+
+-- Flags to control function calls
+local wordsRandomizedForRound = false
+local tileShownForRound = false
+local currentPlayer = 1 -- Current player (1 or 2)
 
 local function duplicateWordList()
+    duplicateWords = {}
     for index, word in ipairs(wordList) do
         duplicateWords[index] = word
     end
@@ -68,51 +65,61 @@ local function selectProverbForPlayer(p)
     tileCounts[p] = 0
     tileMatchFlags[p] = 0
     currentProverbPositions[p] = 0
-    choiceTimings[p] = 0
-    guessHelpers[p] = 1
 end
 
 local function initializePlayerProverbBoxes(p)
     local boxes = {}
-    for a = 0, playerProverbWordCounts[p]-1 do
+    for a = 0, playerProverbWordCounts[p] - 1 do
         local x = 5 + a * (480 / playerProverbWordCounts[p])
         local y = 1 + (p - 1) * 155
         local width = (480 / playerProverbWordCounts[p])
         local height = 52
-        boxes[a+1] = {x = x, y = y, width = width, height = height}
+        boxes[a + 1] = { x = x, y = y, width = width, height = height }
     end
     playerProverbBoxes[p].boxes = boxes
 end
 
-local function readProverbs()
-    local proverbsList = {
-        {"A", "stitch", "in", "time", "saves", "nine"},
-        {"Actions", "speak", "louder", "than", "words"},
-        {"Better", "late", "than", "never"},
-        {"Birds", "of", "a", "feather", "flock", "together"},
-        {"Don't", "count", "your", "chickens", "before", "they", "hatch"},
-        {"Every", "cloud", "has", "a", "silver", "lining"},
-        {"Too", "many", "cooks", "spoil", "the", "broth"}
-    }
+local function readProverbsFromFile(filename)
+    local file = io.open(filename, "r")
+    if not file then
+        error("Cannot open file: " .. filename)
+    end
 
+    local pList = {}
+    for line in file:lines() do
+        local pv = {}
+        for word in line:gmatch("%S+") do
+            table.insert(pv, word)
+        end
+        table.insert(pList, pv)
+    end
+
+    file:close()
+    return pList
+end
+
+local function readProverbs()
     totalProverbs = 0
     totalWords = 0
+    wordList = {}
+
+    local proverbsList = readProverbsFromFile("proverblist")
 
     for _, proverb in ipairs(proverbsList) do
         totalProverbs = totalProverbs + 1
         proverbWordCounts[totalProverbs] = #proverb
         proverbs[totalProverbs] = {}
         for wordIndex, word in ipairs(proverb) do
-            totalWords = totalWords + 1
             proverbs[totalProverbs][wordIndex] = word
-            wordList[totalWords] = word
+            table.insert(wordList, word)
+            totalWords = totalWords + 1
         end
     end
 
     local additionalWords = {
-        "b","c","d","e","f","g","h","I","J","k","l","m","n","o","p","q","r","S","t","u","v","w",
-        "in","on","by","at","he","no","an","is","ho","ma","be","hi","yo",
-        "jack","il","bo","un","con","do","ex","if","lo","so",
+        "b", "c", "d", "e", "f", "g", "h", "I", "J", "k", "l", "m", "n", "o", "p", "q", "r", "S", "t", "u", "v", "w",
+        "in", "on", "by", "at", "he", "no", "an", "is", "ho", "ma", "be", "hi", "yo",
+        "jack", "il", "bo", "un", "con", "do", "ex", "if", "lo", "so",
         "zo"
     }
 
@@ -120,32 +127,9 @@ local function readProverbs()
         if word == "zo" then
             break
         end
+        table.insert(wordList, word)
         totalWords = totalWords + 1
-        wordList[totalWords] = word
     end
-end
-
-function love.load()
-    love.window.setMode(windowWidth, windowHeight)
-    love.window.setTitle("Jack Trot - Words from Proverbs")
-
-    readProverbs()
-    duplicateWordList()
-    wordListDividedBy5 = math.floor(totalWords / 5)
-    wordListDividedBy15 = math.floor(totalWords / 15)
-
-    for p = 1, 2 do
-        selectProverbForPlayer(p)
-        initializePlayerProverbBoxes(p)
-    end
-
-    tileNumber = 1
-    tileIndex = 1
-    gameRound = 1
-    tileRound = 1
-    pauseCounter = 100
-    maxWaitTime = 200
-    gameState = "playing"
 end
 
 local function randomizeWords()
@@ -154,6 +138,7 @@ local function randomizeWords()
         remainingWords[i] = word
     end
 
+    tileWords = {}
     local totalTiles = wordListDividedBy15
     for a = 1, totalTiles do
         tileWords[a] = {}
@@ -172,11 +157,7 @@ local function showTile()
     if tileWords[tileIndex] then
         currentTileWords = tileWords[tileIndex]
         tileIndex = tileIndex + 1
-        if tileIndex > #tileWords then
-            tileIndex = 1
-        end
     else
-        -- No more tiles
         gameState = "gameover"
     end
 end
@@ -202,7 +183,7 @@ local function checkTileMatch(p)
 end
 
 local function updatePlayerScore(p)
-    local points = grabs[p] + 10 
+    local points = grabs[p] + 10
     scores[p] = scores[p] + points
     grabs[p] = grabs[p] + 1
 end
@@ -216,34 +197,53 @@ local function updatePlayerProverb(p)
 end
 
 local function handlePlayerTileChoice(p)
-    -- Simulate timing (choiceTimings)
-    local startTime = love.timer.getTime()
-    choiceTimings[p] = 0
     checkTileMatch(p)
     if tileMatchFlags[p] == 1 then
-        choiceTimings[p] = love.timer.getTime() - startTime
         updatePlayerScore(p)
         updatePlayerProverb(p)
     end
 end
 
+function love.load()
+    love.window.setMode(windowWidth, windowHeight)
+    love.window.setTitle("Jack Trot - Words from Proverbs")
+
+    readProverbs()
+    duplicateWordList()
+    wordListDividedBy15 = math.floor(totalWords / 15)
+
+    for p = 1, 2 do
+        selectProverbForPlayer(p)
+        initializePlayerProverbBoxes(p)
+    end
+
+    tileNumber = 1
+    tileIndex = 1
+    gameRound = 1
+    tileRound = 1
+    gameState = "playing"
+
+    randomizeWords() -- Randomize words once at the start
+    wordsRandomizedForRound = true
+end
+
 function love.update(dt)
     if gameState == "playing" then
         if gameRound <= 5 then
-            randomizeWords()
-            -- Tile rounds within the game round
+            if tileRound == 1 and not wordsRandomizedForRound then
+                randomizeWords()
+                wordsRandomizedForRound = true
+            end
+
             if tileRound <= wordListDividedBy15 then
-                showTile()
-                handlePlayerTileChoice(1)
-                handlePlayerTileChoice(2)
-                pauseCounter = pauseCounter - 1
-                maxWaitTime = maxWaitTime - 1
-                tileNumber = tileNumber + 1
-                tileRound = tileRound + 1
+                if not tileShownForRound then
+                    showTile()
+                    tileShownForRound = true
+                end
             else
-                -- Reset tile round for next game round
                 tileRound = 1
                 gameRound = gameRound + 1
+                wordsRandomizedForRound = false
             end
         else
             gameState = "gameover"
@@ -251,10 +251,8 @@ function love.update(dt)
     end
 end
 
--- Draw function
 function love.draw()
     if gameState == "playing" then
-        -- Draw the proverb boxes for each player
         for p = 1, 2 do
             local boxes = playerProverbBoxes[p].boxes or {}
             for index, box in ipairs(boxes) do
@@ -263,34 +261,39 @@ function love.draw()
                     love.graphics.print(playerProverbs[p][index], box.x + 5, box.y + 5)
                 end
             end
-            -- Display scores
             love.graphics.print("Player " .. p .. " Score: " .. scores[p], 10, 180 + (p - 1) * 20)
         end
 
-        -- Draw current tile
         love.graphics.rectangle("line", 20, 77, 120, 51)
         for i, word in ipairs(currentTileWords) do
             love.graphics.print(word, 30, 90 + (i - 1) * 16)
         end
         love.graphics.print("Tile No: " .. tileNumber, 150, 100)
     elseif gameState == "gameover" then
-        -- Display game over message and final scores
         love.graphics.print("Game Over", windowWidth / 2 - 50, windowHeight / 2 - 20)
         for p = 1, 2 do
-            love.graphics.print("Player " .. p .. " Final Score: " .. scores[p], windowWidth / 2 - 70, windowHeight / 2 + (p - 1) * 20)
+            love.graphics.print("Player " .. p .. " Final Score: " .. scores[p],
+                windowWidth / 2 - 70, windowHeight / 2 + (p - 1) * 20)
         end
     end
 end
 
--- Handle key presses
 function love.keypressed(key)
     if key == "escape" then
         love.event.quit()
     elseif gameState == "playing" then
         if key == "space" then
-            -- Players can make guesses or request tiles
-            -- For simplicity, we'll assume space triggers tile matching
-            -- Handle player tile choices here if needed
+            handlePlayerTileChoice(currentPlayer)
+            tileNumber = tileNumber + 1
+            tileRound = tileRound + 1
+            tileShownForRound = false
+
+            if tileCounts[currentPlayer] >= playerProverbWordCounts[currentPlayer] then
+                gameState = "gameover"
+                print("Player " .. currentPlayer .. " has completed their proverb!")
+            else
+                currentPlayer = 3 - currentPlayer -- Switch between 1 and 2
+            end
         end
     end
 end
